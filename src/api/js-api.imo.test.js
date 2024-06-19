@@ -75,7 +75,9 @@ describe("window.importMapOverrides", () => {
       try {
         const map = await window.importMapOverrides.getDefaultMap();
       } catch (e) {
-        expect(e.message).toEqual("Unexpected token M in JSON at position 0");
+        expect(e.message).toEqual(
+          "Unexpected token 'M', \"Malformed\" is not valid JSON"
+        );
       }
     });
 
@@ -513,6 +515,28 @@ describe("window.importMapOverrides", () => {
           },
         },
       });
+    });
+  });
+
+  describe("setImportMapType", () => {
+    beforeEach(async () => {
+      localStorage.clear();
+      await setDocumentAndLoadScript();
+    });
+
+    it.each(["importmap", "systemjs-importmap", "importmap-shim"])(
+      `should set the import map type in local storage - %s`,
+      (type) => {
+        window.importMapOverrides.setImportMapType(type);
+        expect(localStorage.getItem("import-map-overrides-map-type")).toBe(
+          type
+        );
+      }
+    );
+
+    it("should not set when not the allowed type", () => {
+      window.importMapOverrides.setImportMapType("invalid-type");
+      expect(localStorage.getItem("import-map-overrides-map-type")).toBeNull();
     });
   });
 });

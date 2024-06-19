@@ -5,6 +5,7 @@ import { getParameterByName } from "../util/url-parameter";
 const localStoragePrefix = "import-map-override:";
 const disabledOverridesLocalStorageKey = "import-map-overrides-disabled";
 const externalOverridesLocalStorageKey = "import-map-overrides-external-maps";
+const importMapTypeLocalStorageKey = "import-map-overrides-map-type";
 const overrideAttribute = "data-is-importmap-override";
 const domainsMeta = "import-map-overrides-domains";
 const allowListPrefix = "allowlist:";
@@ -19,9 +20,13 @@ const domainsElement = document.querySelector(`meta[name="${domainsMeta}"]`);
 
 const externalOverrideMapPromises = {};
 
-export const importMapType = importMapMetaElement
+let importMapType = importMapMetaElement
   ? importMapMetaElement.getAttribute("content")
   : "importmap";
+
+if (localStorage.getItem(importMapTypeLocalStorageKey)) {
+  importMapType = localStorage.getItem(importMapTypeLocalStorageKey);
+}
 
 export let isDisabled;
 
@@ -344,6 +349,22 @@ function init() {
       return promise.then(
         () => !includes(imo.invalidExternalMaps, importMapUrl)
       );
+    },
+    setImportMapType(importMapType) {
+      const allowedMapTypes = [
+        "importmap",
+        "systemjs-importmap",
+        "importmap-shim",
+      ];
+      if (!includes(allowedMapTypes, importMapType)) {
+        console.warn(
+          `Invalid import map type: ${importMapType}, allowed types are: ${allowedMapTypes.join(
+            ", "
+          )}`
+        );
+        return;
+      }
+      localStorage.setItem(importMapTypeLocalStorageKey, importMapType);
     },
     invalidExternalMaps: [],
   };
